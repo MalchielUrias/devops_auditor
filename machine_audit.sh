@@ -237,9 +237,55 @@ cmd "docker version" \
   bash -c "docker version 2>/dev/null || echo '[not available]'"
 
 # =============================================================================
-# SECTION 7 — ENVIRONMENT SUMMARY FLAGS
+# SECTION 7 — RUNNING PROCESSES
 # =============================================================================
-h1 "7. Automated Finding Flags"
+h1 "7. Running Processes"
+info "Process inspection — relevant for servers running workloads outside of Docker containers."
+
+h2 "7.1 All Running Processes"
+info "Full process list with user, CPU, memory, and command. Review for unexpected or undocumented processes."
+cmd "ps aux (all processes)" \
+  bash -c "ps aux 2>/dev/null || echo '[ps not available]'"
+
+h2 "7.2 Processes Sorted by CPU Usage"
+info "Top CPU consumers — flag any unexpected high-CPU processes."
+cmd "ps aux sorted by CPU" \
+  bash -c "ps aux 2>/dev/null | sort -rk3 | head -20 || echo '[not available]'"
+
+h2 "7.3 Processes Sorted by Memory Usage"
+info "Top memory consumers — flag any unexpected high-memory processes."
+cmd "ps aux sorted by memory" \
+  bash -c "ps aux 2>/dev/null | sort -rk4 | head -20 || echo '[not available]'"
+
+h2 "7.4 Processes Listening on Network Ports"
+info "Cross-reference with Section 3.3 — every listening process should have a known, documented purpose."
+cmd "ps aux for listening processes" \
+  bash -c "ss -tlnp 2>/dev/null | awk 'NR>1 {print \$4, \$6}' || netstat -tlnp 2>/dev/null || echo '[not available]'"
+
+h2 "7.5 Processes Running as Root"
+info "Non-system processes running as root should be reviewed and justified."
+cmd "root processes" \
+  bash -c "ps aux 2>/dev/null | awk '\$1 == \"root\" {print}' | grep -v '\[' || echo '[none or not available]'"
+
+h2 "7.6 Open Files & Network Connections per Process"
+info "Shows active network connections and which process owns them."
+cmd "ss -tp (established connections)" \
+  bash -c "ss -tp 2>/dev/null || netstat -tp 2>/dev/null || echo '[not available]'"
+
+h2 "7.7 Zombie Processes"
+info "Processes that have finished but not been cleaned up by their parent. Indicates poorly written or crashed software."
+cmd "zombie processes" \
+  bash -c "ps aux 2>/dev/null | awk '\$8 == \"Z\" {print}' || echo '[none found or not available]'"
+
+h2 "7.8 Processes Running from Deleted Binaries"
+info "A process whose binary no longer exists on disk. Can indicate malware, incomplete deployments, or in-place upgrades."
+cmd "deleted binary processes" \
+  bash -c "ls -la /proc/*/exe 2>/dev/null | { grep -i 'deleted' || echo '[none found]'; }"
+
+# =============================================================================
+# SECTION 8 — ENVIRONMENT SUMMARY FLAGS
+# =============================================================================
+h1 "8. Automated Finding Flags"
 info "These are automated checks that flag likely issues. Verify each manually before including in the report."
 echo ""
 
