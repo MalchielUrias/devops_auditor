@@ -202,7 +202,7 @@ cmd "docker system df" \
 
 h2 "5.4 Top Disk Consumers — Docker"
 cmd "du -sh /var/lib/docker/* (Docker subdirs)" \
-  bash -c "du -sh /var/lib/docker/* 2>/dev/null | sort -rh | head -20 || echo '[not accessible]'"
+  bash -c "timeout 30 du -sh --max-depth=1 /var/lib/docker/ 2>/dev/null | sort -rh | head -20 || echo '[not accessible or timed out]'"
 
 h2 "5.5 Top Disk Consumers — Logs"
 cmd "du -sh /var/log/* (log files)" \
@@ -216,7 +216,7 @@ cmd "Docker container log sizes" \
 h2 "5.7 Largest Files on System (top 20)"
 warn "This check may take a moment on servers with large disks."
 cmd "find / largest files" \
-  bash -c "find / -maxdepth 8 -type f -not -path '/proc/*' -not -path '/sys/*' -not -path '/dev/*' 2>/dev/null | xargs ls -lh 2>/dev/null | sort -k5 -rh | head -20 || echo '[not accessible]'"
+  bash -c "timeout 60 find / -maxdepth 6 -type f -not -path '/proc/*' -not -path '/sys/*' -not -path '/dev/*' -not -path '/var/lib/docker/*' 2>/dev/null | xargs ls -lh 2>/dev/null | sort -k5 -rh | head -20 || echo '[not accessible or timed out]'"
 
 # =============================================================================
 # SECTION 6 — DOCKER DAEMON
