@@ -10,8 +10,6 @@
 #   bash run_audit.sh
 # =============================================================================
 
-set -euo pipefail
-
 REPO="https://raw.githubusercontent.com/MalchielUrias/devops_auditor/main"
 DATE=$(date +%Y%m%d)
 HOST=$(hostname)
